@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 99.6%; /* #FEFEFE */
+  --foreground: 222 84% 14%; /* #2D3436 */
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 13.8% 34.1%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 84% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 84% 14%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --primary: 15 100% 60%; /* #FF6B35 */
+  --primary-foreground: 210 40% 98%;
+  --secondary: 174 60% 56%; /* #4ECDC4 */
+  --secondary-foreground: 222 84% 14%;
+  --accent: 45 93% 71%; /* #FDCB6E */
+  --accent-foreground: 222 84% 14%;
+  --success: 158 64% 52%; /* #00B894 */
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --ring: 222 84% 14%;
+  --radius: 0.75rem;
+  --chart-1: 12 76% 61%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 197 37% 24%;
+  --chart-4: 43 74% 66%;
+  --chart-5: 27 87% 67%;
+}
+
+.dark {
+  --background: 222 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --popover: 222 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --card: 222 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --primary: 15 100% 60%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 174 60% 56%;
+  --secondary-foreground: 222 84% 4.9%;
+  --accent: 45 93% 71%;
+  --accent-foreground: 222 84% 4.9%;
+  --success: 158 64% 52%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --ring: 212.7 26.8% 83.9%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+@layer components {
+  .food-card {
+    @apply bg-card rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 group;
+  }
+  
+  .food-card-image {
+    @apply w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300;
+  }
+  
+  .cuisine-tag {
+    @apply px-3 py-1 rounded-full text-sm font-medium;
+  }
+  
+  .star-rating {
+    @apply flex text-accent;
+  }
+}
