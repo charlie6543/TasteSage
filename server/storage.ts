@@ -172,7 +172,15 @@ export class MemStorage implements IStorage {
 
     seedFoods.forEach(food => {
       const id = this.currentFoodId++;
-      this.foods.set(id, { ...food, id });
+      this.foods.set(id, { 
+        ...food, 
+        id,
+        isVegetarian: food.isVegetarian ?? false,
+        isVegan: food.isVegan ?? false,
+        isGlutenFree: food.isGlutenFree ?? false,
+        isKeto: food.isKeto ?? false,
+        isLowCarb: food.isLowCarb ?? false
+      });
     });
   }
 
