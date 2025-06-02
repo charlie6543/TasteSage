@@ -25,7 +25,7 @@ export default function Preferences() {
   });
 
   // Load user preferences from database
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<{ id: number; username: string; preferences: UserPreferences | null }>({
     queryKey: ["/api/user"],
   });
 
@@ -291,17 +291,21 @@ export default function Preferences() {
         </Card>
 
         {/* Save Button */}
-        <div className="text-center">
-          <Button
-            size="lg"
-            onClick={handleSavePreferences}
-            disabled={savePreferencesMutation.isPending}
-            className="bg-success text-white hover:bg-success/90 px-8 py-3"
-          >
-            <Check className="w-5 h-5 mr-2" />
-            {savePreferencesMutation.isPending ? "Saving..." : "Save Preferences & Get Recommendations"}
-          </Button>
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50">
+          <div className="max-w-4xl mx-auto text-center">
+            <button
+              onClick={handleSavePreferences}
+              disabled={savePreferencesMutation.isPending}
+              className="bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-400 px-8 py-4 text-lg font-semibold rounded-xl shadow-lg transition-colors duration-200"
+            >
+              <Check className="w-5 h-5 mr-2 inline" />
+              {savePreferencesMutation.isPending ? "Saving..." : "Save Preferences & Get Recommendations"}
+            </button>
+          </div>
         </div>
+        
+        {/* Spacer for fixed button */}
+        <div className="h-24"></div>
       </div>
     </div>
   );
