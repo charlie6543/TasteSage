@@ -18,12 +18,15 @@ export default function Home() {
     queryKey: ["/api/foods"],
   });
 
+  // Get user preferences from database
+  const { data: user } = useQuery({
+    queryKey: ["/api/user"],
+  });
+
   const { data: recommendations, isLoading: isLoadingRecommendations } = useQuery<Food[]>({
     queryKey: ["/api/recommendations"],
     queryFn: async () => {
-      // Get preferences from localStorage or use defaults
-      const preferences = JSON.parse(localStorage.getItem('userPreferences') || '{}');
-      const defaultPreferences = {
+      const preferences = user?.preferences || {
         dietary: [],
         cuisines: [],
         spiceLevel: 3,
@@ -33,12 +36,13 @@ export default function Home() {
       const res = await fetch("/api/recommendations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...defaultPreferences, ...preferences }),
+        body: JSON.stringify(preferences),
       });
       
       if (!res.ok) throw new Error("Failed to fetch recommendations");
       return res.json();
     },
+    enabled: !!user,
   });
 
   const handleSearch = async (query: string) => {

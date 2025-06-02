@@ -34,14 +34,12 @@ export default function Preferences() {
 
   const savePreferencesMutation = useMutation({
     mutationFn: async (newPreferences: UserPreferences) => {
-      // Save to localStorage
-      localStorage.setItem('userPreferences', JSON.stringify(newPreferences));
-      
-      // Also send to backend for recommendations
-      return apiRequest("POST", "/api/recommendations", newPreferences);
+      // Save preferences to the database
+      return apiRequest("POST", "/api/user/preferences", newPreferences);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/recommendations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       toast({
         title: "Preferences saved!",
         description: "Your taste preferences have been updated. Getting new recommendations...",

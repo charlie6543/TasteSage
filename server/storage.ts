@@ -13,6 +13,7 @@ export interface IStorage {
   getFoodsByCuisine(cuisine: string): Promise<Food[]>;
   searchFoods(query: string): Promise<Food[]>;
   getRecommendedFoods(preferences: UserPreferences): Promise<Food[]>;
+  createFood(food: InsertFood): Promise<Food>;
   
   getUserFavorites(userId: number): Promise<Food[]>;
   addFavorite(favorite: InsertUserFavorite): Promise<UserFavorite>;
@@ -375,6 +376,14 @@ export class DatabaseStorage implements IStorage {
       
       return true;
     }).sort((a, b) => b.rating - a.rating);
+  }
+
+  async createFood(food: InsertFood): Promise<Food> {
+    const [newFood] = await db
+      .insert(foods)
+      .values(food)
+      .returning();
+    return newFood;
   }
 
   async getUserFavorites(userId: number): Promise<Food[]> {
