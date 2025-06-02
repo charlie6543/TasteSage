@@ -24,26 +24,27 @@ export default function Preferences() {
     flavors: []
   });
 
-  // Load user preferences from database
-  const { data: user } = useQuery<{ id: number; username: string; preferences: UserPreferences | null }>({
-    queryKey: ["/api/user"],
-  });
-
-  // Update local preferences when user data loads
+  // Load preferences from localStorage on mount
   useEffect(() => {
-    if (user?.preferences) {
-      setPreferences(user.preferences);
+    const savedPreferences = localStorage.getItem('userPreferences');
+    if (savedPreferences) {
+      try {
+        const parsed = JSON.parse(savedPreferences);
+        setPreferences(parsed);
+      } catch (error) {
+        console.error("Error parsing saved preferences:", error);
+      }
     }
-  }, [user]);
+  }, []);
 
   const savePreferencesMutation = useMutation({
     mutationFn: async (newPreferences: UserPreferences) => {
-      // Save preferences to the database
-      return apiRequest("POST", "/api/user/preferences", newPreferences);
+      // Save to localStorage
+      localStorage.setItem('userPreferences', JSON.stringify(newPreferences));
+      return Promise.resolve(newPreferences);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/recommendations"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       toast({
         title: "Preferences saved!",
         description: "Your taste preferences have been updated. Getting new recommendations...",
