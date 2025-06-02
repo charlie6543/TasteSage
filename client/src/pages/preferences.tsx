@@ -24,13 +24,17 @@ export default function Preferences() {
     flavors: []
   });
 
-  // Load preferences from localStorage on mount
+  // Load user preferences from database
+  const { data: user } = useQuery({
+    queryKey: ["/api/user"],
+  });
+
+  // Update local preferences when user data loads
   useEffect(() => {
-    const savedPreferences = localStorage.getItem('userPreferences');
-    if (savedPreferences) {
-      setPreferences(JSON.parse(savedPreferences));
+    if (user?.preferences) {
+      setPreferences(user.preferences);
     }
-  }, []);
+  }, [user]);
 
   const savePreferencesMutation = useMutation({
     mutationFn: async (newPreferences: UserPreferences) => {
