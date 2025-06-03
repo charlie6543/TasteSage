@@ -1,7 +1,7 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "outputDirectory": "dist/public",
   "builds": [
     {
       "src": "server/index.ts",
@@ -15,15 +15,15 @@
     },
     {
       "src": "/assets/(.*)",
-      "dest": "/dist/assets/$1"
+      "dest": "/dist/public/assets/$1"
     },
     {
       "src": "/(.*)\\.(?:js|css|ico|png|jpg|jpeg|svg|gif)$",
-      "dest": "/dist/$1.$2"
+      "dest": "/dist/public/$1.$2"
     },
     {
       "src": "/(.*)",
-      "dest": "/dist/index.html"
+      "dest": "/dist/public/index.html"
     }
   ]
 } 
