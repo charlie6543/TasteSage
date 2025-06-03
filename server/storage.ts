@@ -1,6 +1,4 @@
 import { users, foods, userFavorites, type User, type InsertUser, type Food, type InsertFood, type UserFavorite, type InsertUserFavorite, type UserPreferences } from "@shared/schema";
-import { db } from "./db";
-import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -13,7 +11,6 @@ export interface IStorage {
   getFoodsByCuisine(cuisine: string): Promise<Food[]>;
   searchFoods(query: string): Promise<Food[]>;
   getRecommendedFoods(preferences: UserPreferences): Promise<Food[]>;
-  createFood(food: InsertFood): Promise<Food>;
   
   getUserFavorites(userId: number): Promise<Food[]>;
   addFavorite(favorite: InsertUserFavorite): Promise<UserFavorite>;
@@ -175,15 +172,7 @@ export class MemStorage implements IStorage {
 
     seedFoods.forEach(food => {
       const id = this.currentFoodId++;
-      this.foods.set(id, { 
-        ...food, 
-        id,
-        isVegetarian: food.isVegetarian ?? false,
-        isVegan: food.isVegan ?? false,
-        isGlutenFree: food.isGlutenFree ?? false,
-        isKeto: food.isKeto ?? false,
-        isLowCarb: food.isLowCarb ?? false
-      });
+      this.foods.set(id, { ...food, id });
     });
   }
 
@@ -301,139 +290,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export class DatabaseStorage implements IStorage {
-  async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
-    return user;
-  }
-
-  async updateUserPreferences(userId: number, preferences: UserPreferences): Promise<User | undefined> {
-    const [user] = await db
-      .update(users)
-      .set({ preferences })
-      .where(eq(users.id, userId))
-      .returning();
-    return user || undefined;
-  }
-
-  async getAllFoods(): Promise<Food[]> {
-    return await db.select().from(foods);
-  }
-
-  async getFoodById(id: number): Promise<Food | undefined> {
-    const [food] = await db.select().from(foods).where(eq(foods.id, id));
-    return food || undefined;
-  }
-
-  async getFoodsByCuisine(cuisine: string): Promise<Food[]> {
-    return await db.select().from(foods).where(eq(foods.cuisine, cuisine));
-  }
-
-  async searchFoods(query: string): Promise<Food[]> {
-    const allFoods = await db.select().from(foods);
-    const lowerQuery = query.toLowerCase();
-    return allFoods.filter(food =>
-      food.name.toLowerCase().includes(lowerQuery) ||
-      food.description.toLowerCase().includes(lowerQuery) ||
-      food.cuisine.toLowerCase().includes(lowerQuery) ||
-      food.ingredients.some(ingredient => ingredient.toLowerCase().includes(lowerQuery))
-    );
-  }
-
-  async getRecommendedFoods(preferences: UserPreferences): Promise<Food[]> {
-    const allFoods = await db.select().from(foods);
-    
-    return allFoods.filter(food => {
-      if (preferences.dietary.includes("vegetarian") && !food.isVegetarian) return false;
-      if (preferences.dietary.includes("vegan") && !food.isVegan) return false;
-      if (preferences.dietary.includes("glutenFree") && !food.isGlutenFree) return false;
-      if (preferences.dietary.includes("keto") && !food.isKeto) return false;
-      if (preferences.dietary.includes("lowCarb") && !food.isLowCarb) return false;
-      
-      if (preferences.cuisines.length > 0 && !preferences.cuisines.includes(food.cuisine)) return false;
-      
-      if (Math.abs(food.spiceLevel - preferences.spiceLevel) > 1) return false;
-      
-      if (preferences.flavors.length > 0) {
-        const hasMatchingFlavor = preferences.flavors.some(flavor => 
-          food.flavors.includes(flavor)
-        );
-        if (!hasMatchingFlavor) return false;
-      }
-      
-      return true;
-    }).sort((a, b) => b.rating - a.rating);
-  }
-
-  async createFood(food: InsertFood): Promise<Food> {
-    const [newFood] = await db
-      .insert(foods)
-      .values(food)
-      .returning();
-    return newFood;
-  }
-
-  async getUserFavorites(userId: number): Promise<Food[]> {
-    const favoritesFoods = await db
-      .select({
-        id: foods.id,
-        name: foods.name,
-        description: foods.description,
-        cuisine: foods.cuisine,
-        image: foods.image,
-        rating: foods.rating,
-        cookTime: foods.cookTime,
-        spiceLevel: foods.spiceLevel,
-        isVegetarian: foods.isVegetarian,
-        isVegan: foods.isVegan,
-        isGlutenFree: foods.isGlutenFree,
-        isKeto: foods.isKeto,
-        isLowCarb: foods.isLowCarb,
-        flavors: foods.flavors,
-        ingredients: foods.ingredients,
-      })
-      .from(userFavorites)
-      .innerJoin(foods, eq(userFavorites.foodId, foods.id))
-      .where(eq(userFavorites.userId, userId));
-    
-    return favoritesFoods;
-  }
-
-  async addFavorite(favorite: InsertUserFavorite): Promise<UserFavorite> {
-    const [newFavorite] = await db
-      .insert(userFavorites)
-      .values(favorite)
-      .returning();
-    return newFavorite;
-  }
-
-  async removeFavorite(userId: number, foodId: number): Promise<boolean> {
-    const result = await db
-      .delete(userFavorites)
-      .where(and(eq(userFavorites.userId, userId), eq(userFavorites.foodId, foodId)));
-    return (result.rowCount ?? 0) > 0;
-  }
-
-  async isFavorite(userId: number, foodId: number): Promise<boolean> {
-    const [favorite] = await db
-      .select()
-      .from(userFavorites)
-      .where(and(eq(userFavorites.userId, userId), eq(userFavorites.foodId, foodId)));
-    return !!favorite;
-  }
-}
-
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();

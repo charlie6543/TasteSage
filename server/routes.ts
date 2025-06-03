@@ -5,48 +5,13 @@ import { userPreferencesSchema, insertUserFavoriteSchema, insertUserSchema } fro
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Initialize default user and seed data if needed
+  // Initialize default user
   const initializeUser = async () => {
     try {
       let user = await storage.getUserByUsername("demo_user");
       if (!user) {
         user = await storage.createUser({ username: "demo_user" });
       }
-      
-      // Check if we need to seed food data
-      const foods = await storage.getAllFoods();
-      if (foods.length === 0) {
-        console.log("Seeding food data...");
-        // Use the MemStorage seeding functionality temporarily
-        const memStorage = new (await import("./storage")).MemStorage();
-        const seedFoods = await memStorage.getAllFoods();
-        
-        // Insert each food into the database
-        for (const food of seedFoods) {
-          try {
-            await storage.createFood({
-              name: food.name,
-              description: food.description,
-              cuisine: food.cuisine,
-              image: food.image,
-              rating: food.rating,
-              cookTime: food.cookTime,
-              spiceLevel: food.spiceLevel,
-              isVegetarian: food.isVegetarian,
-              isVegan: food.isVegan,
-              isGlutenFree: food.isGlutenFree,
-              isKeto: food.isKeto,
-              isLowCarb: food.isLowCarb,
-              flavors: food.flavors,
-              ingredients: food.ingredients
-            });
-          } catch (seedError) {
-            console.error("Error seeding food:", food.name, seedError);
-          }
-        }
-        console.log("Food data seeding completed");
-      }
-      
       return user;
     } catch (error) {
       console.error("Failed to initialize user:", error);
