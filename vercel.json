@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "server/index.ts",
+      "src": "api/**/*.js",
       "use": "@vercel/node"
     },
     {
@@ -15,7 +15,18 @@
   ],
   "routes": [
     {
+      "src": "/api/recommendations",
+      "dest": "/api/recommendations.js"
+    },
+    {
+      "src": "/api/foods",
+      "dest": "/api/foods.js"
+    },
+    {
       "src": "/api/(.*)",
+      "headers": {
+        "Content-Type": "application/json"
+      },
       "dest": "/server/index.ts"
     },
     {

@@ -9,7 +9,7 @@ import { CuisineCard } from "@/components/cuisine-card";
 import { Search, Sparkles, Play, Globe, Flame, Leaf, Clock, Heart } from "lucide-react";
 import { CUISINES } from "@/lib/constants";
 import { apiRequest } from "@/lib/queryClient";
-import type { Food } from "@shared/schema";
+import type { Food, UserPreferences } from "@shared/schema";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -17,6 +17,29 @@ export default function Home() {
 
   const { data: foods, isLoading } = useQuery<Food[]>({
     queryKey: ["/api/foods"],
+    queryFn: async () => {
+      try {
+        // First try the serverless function
+        try {
+          const res = await fetch('/api/foods');
+          
+          if (!res.ok) {
+            throw new Error(`API returned ${res.status}`);
+          }
+          
+          return await res.json();
+        } catch (serverlessError) {
+          console.warn("Serverless API failed, trying fallback:", serverlessError);
+          // Fallback to the regular API endpoint
+          const res = await fetch("/api/foods");
+          if (!res.ok) throw new Error("Failed to fetch foods");
+          return res.json();
+        }
+      } catch (error) {
+        console.error("Error fetching foods:", error);
+        return [];
+      }
+    }
   });
 
   const { data: recommendations, isLoading: isLoadingRecommendations } = useQuery<Food[]>({
@@ -24,7 +47,7 @@ export default function Home() {
     queryFn: async () => {
       // Get preferences from localStorage or use defaults
       const savedPreferences = localStorage.getItem('userPreferences');
-      let preferences = {
+      let preferences: UserPreferences = {
         dietary: [],
         cuisines: [],
         spiceLevel: 3,
@@ -33,14 +56,44 @@ export default function Home() {
       
       if (savedPreferences) {
         try {
-          preferences = { ...preferences, ...JSON.parse(savedPreferences) };
+          const parsedPreferences = JSON.parse(savedPreferences);
+          // Ensure the structure matches what the server expects
+          preferences = {
+            dietary: Array.isArray(parsedPreferences.dietary) ? parsedPreferences.dietary : [],
+            cuisines: Array.isArray(parsedPreferences.cuisines) ? parsedPreferences.cuisines : [],
+            spiceLevel: typeof parsedPreferences.spiceLevel === 'number' ? parsedPreferences.spiceLevel : 3,
+            flavors: Array.isArray(parsedPreferences.flavors) ? parsedPreferences.flavors : []
+          };
         } catch (error) {
           console.error("Error parsing saved preferences:", error);
         }
       }
       
-      const res = await apiRequest("POST", "/api/recommendations", preferences);
-      return await res.json();
+      try {
+        // First try the serverless function
+        try {
+          const res = await fetch('/api/recommendations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(preferences)
+          });
+          
+          if (!res.ok) {
+            throw new Error(`API returned ${res.status}`);
+          }
+          
+          return await res.json();
+        } catch (serverlessError) {
+          console.warn("Serverless API failed, trying fallback:", serverlessError);
+          // Fallback to the regular API endpoint
+          const res = await apiRequest("POST", "/api/recommendations", preferences);
+          return await res.json();
+        }
+      } catch (error) {
+        console.error("Error fetching recommendations:", error);
+        // Return empty array on error to prevent UI breaking
+        return [];
+      }
     },
   });
 

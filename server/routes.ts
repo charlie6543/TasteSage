@@ -106,14 +106,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get recommendations based on preferences
   app.post("/api/recommendations", async (req, res) => {
     try {
-      const preferences = userPreferencesSchema.parse(req.body);
+      // Log the incoming request body for debugging
+      console.log("Received preferences:", JSON.stringify(req.body));
+      
+      // Validate preferences with safe defaults
+      let preferences;
+      try {
+        preferences = userPreferencesSchema.parse(req.body);
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          console.error("Validation error:", error.errors);
+          // Use default preferences if validation fails
+          preferences = {
+            dietary: [],
+            cuisines: [],
+            spiceLevel: 3,
+            flavors: []
+          };
+        } else {
+          throw error; // Re-throw if it's not a validation error
+        }
+      }
+      
       const recommendations = await storage.getRecommendedFoods(preferences);
       res.json(recommendations);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid preferences", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to get recommendations" });
+      console.error("Error in /api/recommendations:", error);
+      res.status(500).json({ 
+        message: "Failed to get recommendations",
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
     }
   });
 
