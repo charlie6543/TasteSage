@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, Clock, Star } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { apiUrl } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import type { Food } from "@shared/schema";
 
@@ -19,7 +20,7 @@ export function FoodCard({ food }: FoodCardProps) {
   const { data: favoriteStatus } = useQuery({
     queryKey: ["/api/favorites", food.id, "check"],
     queryFn: async () => {
-      const res = await fetch(`/api/favorites/${food.id}/check`);
+      const res = await fetch(apiUrl(`/api/favorites/${food.id}/check`));
       return res.json();
     },
   });

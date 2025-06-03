@@ -65,6 +65,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search foods - IMPORTANT: This must come BEFORE the /api/foods/:id route
+  app.get("/api/foods/search/:query", async (req, res) => {
+    try {
+      const query = req.params.query;
+      const foods = await storage.searchFoods(query);
+      res.json(foods);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to search foods" });
+    }
+  });
+
+  // Get foods by cuisine - IMPORTANT: This must come BEFORE the /api/foods/:id route
+  app.get("/api/foods/cuisine/:cuisine", async (req, res) => {
+    try {
+      const cuisine = req.params.cuisine;
+      const foods = await storage.getFoodsByCuisine(cuisine);
+      res.json(foods);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch foods by cuisine" });
+    }
+  });
+
   // Get food by ID
   app.get("/api/foods/:id", async (req, res) => {
     try {
@@ -78,28 +100,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(food);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch food" });
-    }
-  });
-
-  // Search foods
-  app.get("/api/foods/search/:query", async (req, res) => {
-    try {
-      const query = req.params.query;
-      const foods = await storage.searchFoods(query);
-      res.json(foods);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to search foods" });
-    }
-  });
-
-  // Get foods by cuisine
-  app.get("/api/foods/cuisine/:cuisine", async (req, res) => {
-    try {
-      const cuisine = req.params.cuisine;
-      const foods = await storage.getFoodsByCuisine(cuisine);
-      res.json(foods);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch foods by cuisine" });
     }
   });
 

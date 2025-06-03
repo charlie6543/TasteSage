@@ -8,6 +8,7 @@ import { FoodCard } from "@/components/food-card";
 import { CuisineCard } from "@/components/cuisine-card";
 import { Search, Sparkles, Play, Globe, Flame, Leaf, Clock, Heart } from "lucide-react";
 import { CUISINES } from "@/lib/constants";
+import { apiRequest } from "@/lib/queryClient";
 import type { Food } from "@shared/schema";
 
 export default function Home() {
@@ -38,14 +39,8 @@ export default function Home() {
         }
       }
       
-      const res = await fetch("/api/recommendations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(preferences),
-      });
-      
-      if (!res.ok) throw new Error("Failed to fetch recommendations");
-      return res.json();
+      const res = await apiRequest("POST", "/api/recommendations", preferences);
+      return await res.json();
     },
   });
 

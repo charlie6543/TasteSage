@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FoodCard } from "@/components/food-card";
 import { Search, Filter, SlidersHorizontal } from "lucide-react";
 import { CUISINES } from "@/lib/constants";
+import { apiUrl } from "@/lib/api";
 import type { Food } from "@shared/schema";
 
 export default function SearchPage() {
@@ -21,7 +22,7 @@ export default function SearchPage() {
     queryKey: ["/api/foods/search", searchQuery],
     queryFn: async () => {
       if (!searchQuery.trim()) return [];
-      const res = await fetch(`/api/foods/search/${encodeURIComponent(searchQuery)}`);
+      const res = await fetch(apiUrl(`/api/foods/search/${encodeURIComponent(searchQuery)}`));
       if (!res.ok) throw new Error("Search failed");
       return res.json();
     },
@@ -32,7 +33,7 @@ export default function SearchPage() {
     queryKey: ["/api/foods/cuisine", selectedCuisine],
     queryFn: async () => {
       if (selectedCuisine === "all") return [];
-      const res = await fetch(`/api/foods/cuisine/${encodeURIComponent(selectedCuisine)}`);
+      const res = await fetch(apiUrl(`/api/foods/cuisine/${encodeURIComponent(selectedCuisine)}`));
       if (!res.ok) throw new Error("Failed to fetch cuisine foods");
       return res.json();
     },
